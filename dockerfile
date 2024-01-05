@@ -5,7 +5,8 @@ FROM node:20.10.0
 ENV AWS_ACCESS_KEY_ID=
 ENV AWS_SECRET_ACCESS_KEY=
 ENV AWS_REGION=
-
+ENV MONGODB_URI=
+ENV PORT=8000
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
