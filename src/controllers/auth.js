@@ -1,8 +1,8 @@
-const express = require('express')
-const router = new express.Router()
 const User = new require('../models/user.js')
 
-router.post('/signup', async (req, res)=>{
+const {OTPverification} = require('../util/auth.js')
+
+const authSignup = async (req, res)=>{
     console.log("Signup Page:::")
     const {phone_number, age, email, password} = req.body;
     if(req.body==null || phone_number==null || age==null || email==null || password==null){
@@ -18,8 +18,11 @@ router.post('/signup', async (req, res)=>{
 
         if(user==null){
             const newUser = User(req.body)
-            //1. Call OTP function (which generate OTP) over here and save OTP token in User model over here
-            //2. Sent OTP to email and phone number
+
+            const otpToken = OTPverification(phone_number);
+
+            newUser.otpToken = otpToken;
+
             await newUser.save()
 
             return res.status(200).send({
@@ -42,10 +45,9 @@ router.post('/signup', async (req, res)=>{
             "message": err.toString()
         })
     }
-    
-})
+}
 
-router.post('/login', async (req, res)=>{
+const authLogin = async (req, res)=>{
     console.log("Login Page:::")
 
     const {phone_number, email, password} = req.body;
@@ -60,8 +62,7 @@ router.post('/login', async (req, res)=>{
     try{
         const check = await User.matchCredentials(email,phone_number, password);
         if(check.status==1){
-            //1. Call OTP function (which generate OTP) over here and save OTP token in User model over here
-            //2. Sent OTP to email and phone number
+
             return res.status(200).send({
                 "code": 1,
                 "status": "Success!!",
@@ -82,9 +83,9 @@ router.post('/login', async (req, res)=>{
             "message": err.toString()
         })
     }
-})
+}
 
-router.post('/verify/:phone_number', async (req, res)=>{
+const authverify = async (req, res)=>{
     console.log("Verify Page:::")
     const phone_number = req.params.phone_number
     const {otp} = req.body;
@@ -99,8 +100,17 @@ router.post('/verify/:phone_number', async (req, res)=>{
     try{
         const user = await User.findOne({phone_number: phone_number})
         if(user!=null){
-            //Write logic of verification of OTP
-            //Compare OTP stored in JWT token and entered OTP
+            if(user.otpToken==otp){
+
+                user.otpToken = null;
+                
+                return res.status(200).send({
+                    "code": 1,
+                    "status": "Success!!",
+                    "message": "OTP verified successfully!!",
+                    "user": user
+                })
+            }
         }
         res.status(400).send({
             "code": 0,
@@ -114,6 +124,6 @@ router.post('/verify/:phone_number', async (req, res)=>{
             "message": err.toString()
         })
     }
-})
-
-module.exports = router
+}
+    
+module.exports = {authSignup, authLogin , authverify}
