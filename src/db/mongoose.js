@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 mongoose.connect(
-    "mongodb+srv://takshalm:takshal0223@cluster0.tquaujb.mongodb.net/rttv",
+    process.env.MONGODB_URL,
 )
 
 const db = mongoose.connection;
