@@ -89,6 +89,7 @@ const authverify = async (req, res)=>{
     console.log("Verify Page:::")
     const phone_number = req.params.phone_number
     const {otp} = req.body;
+    
     if(req.body==null || otp==null || phone_number==null){
         res.status(400).send({
             "code": 0,
@@ -111,6 +112,11 @@ const authverify = async (req, res)=>{
                     "user": user
                 })
             }
+            return res.status(400).send({
+                "code": 0,
+                "status": "Error",
+                "message": "Invalid OTP!!"
+            })
         }
         res.status(400).send({
             "code": 0,
