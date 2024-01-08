@@ -1,14 +1,7 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
 
 mongoose.connect(
     process.env.MONGODB_URI+"rttv",
-    //This part is creating error
-    // {
-    //     useNewUrlParser: true,
-    //     useUnifiedTopology: true,
-    //     useCreateIndex: true
-    // }
 )
 
 const db = mongoose.connection;

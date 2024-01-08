@@ -1,20 +1,20 @@
-const express = require('express');
-const cors = require('cors');
 require('./db/mongoose')
 
-const authenticationRoutes = require('./routes/authentication')
+const express = require('express');
+const cors = require('cors');
+
+const authroute = require('./routes/auth.js')
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 app.use(express.json());
-app.use(authenticationRoutes);
 app.use(cors());
-
+app.use(authroute);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     }
 );
 
-module.exports = app;
+module.exports = {app};

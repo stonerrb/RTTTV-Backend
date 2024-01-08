@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 10,
-        maxlength: 10
+        // maxlength: 10
     },
     otpToken: {
         type: String,
