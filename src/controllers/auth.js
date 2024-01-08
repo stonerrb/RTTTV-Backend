@@ -19,10 +19,10 @@ const authSignup = async (req, res)=>{
 
         if(user==null){
             const newUser = OTP(req.body)
-
-            const otpToken = OTPverification(phone_number);
+            console.log(phone_number.typeOf)
+            const otpToken = await OTPverification(phone_number);
             if(otpToken.status==1){
-                newUser.otpToken = otpToken;
+                newUser.otpToken = otpToken.otp;
 
                 await newUser.save()
     
@@ -33,7 +33,7 @@ const authSignup = async (req, res)=>{
                     "user": newUser
                 })
             }else{
-                res.status(401).send({
+                return res.status(401).send({
                     "code": 0,
                     "status": "Error",
                     "message": otpToken.message
@@ -125,11 +125,13 @@ const authverify = async (req, res)=>{
     }
 
     try{
-        const user = await User.findOne({phone_number:phone_number});
-        const otp = await OTP.find({phone_number: phone_number})
-        if(user!=null || otp.length!=0){
+        let user = await User.findOne({phone_number:phone_number});
+        const otpModel = await OTP.find({phone_number: phone_number})
+        if(user!=null || otpModel.length!=0){
             if(otp.length!=0){
-                const latestOTP = otp[otp.length-1]
+                const latestOTP = otpModel[otpModel.length-1]
+                console.log(latestOTP.otpToken)
+                console.log(otp)
                 if(latestOTP.otpToken==otp){
 
                     if(user==null){
@@ -139,13 +141,14 @@ const authverify = async (req, res)=>{
                             "phone_number": latestOTP.phone_number
                         }
                         user = new User(newUser);
-                        await user.save();
+                        
                     }
 
                     await OTP.deleteMany({
                         phone_number:phone_number
                     })
-
+                    //Session Token generation save user model over here
+                    await user.save();
                     return res.status(200).send({
                         "code": 1,
                         "status": "Success!!",
@@ -153,7 +156,7 @@ const authverify = async (req, res)=>{
                         "user": user
                     })
                 }else{
-                    return res.status(200).send({
+                    return res.status(400).send({
                         "code": 0,
                         "status": "Error!!",
                         "message": "Invalid OTP!!",
