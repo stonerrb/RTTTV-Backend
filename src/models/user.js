@@ -10,12 +10,6 @@ const userSchema = new mongoose.Schema({
         minlength: 6,
         maxlength: 255
     },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-        maxlength: 1024
-    },
     age: {
         type: Number,
         default: 0,
@@ -28,12 +22,13 @@ const userSchema = new mongoose.Schema({
     phone_number: {
         type: String,
         required: true,
-        minlength: 10,
-        // maxlength: 10
-    },
-    otpToken: {
-        type: String,
-        trim: true,
+        unique: true,
+        validate: {
+            validator: function(v) {
+                return /^\+91\d{10}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number! Must start with '+91' and have a length of 10.`
+        }
     },
     tokens:[
         {
@@ -51,17 +46,17 @@ const userSchema = new mongoose.Schema({
     ],
 });
 
-userSchema.pre('save', async function (next) {
-    const user = this
+// userSchema.pre('save', async function (next) {
+//     const user = this
 
-    if (user.isModified('password')) {
-        user.password = await bcrypt.hash(user.password, 8)
-    }
+//     if (user.isModified('password')) {
+//         user.password = await bcrypt.hash(user.password, 8)
+//     }
 
-    next()
-})
+//     next()
+// })
 
-userSchema.statics.matchCredentials = async (email,phone_number, password)=>{
+userSchema.statics.findUser = async (email,phone_number)=>{
     const user = await User.findOne({phone_number: phone_number})
     if(user==null){
         user = await User.findOne({email: email})
@@ -74,14 +69,14 @@ userSchema.statics.matchCredentials = async (email,phone_number, password)=>{
         }
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // const isMatch = await bcrypt.compare(password, user.password);
 
-    if(!isMatch){
-        return {
-            "status": 0,
-            "message": "Invalid details!!"
-        }
-    }
+    // if(!isMatch){
+    //     return {
+    //         "status": 0,
+    //         "message": "Invalid details!!"
+    //     }
+    // }
     
     return {
         "status": 1,
