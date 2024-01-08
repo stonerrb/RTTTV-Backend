@@ -104,7 +104,7 @@ const authverify = async (req, res)=>{
             if(user.otpToken==otp){
 
                 user.otpToken = null;
-                
+                await user.save()
                 return res.status(200).send({
                     "code": 1,
                     "status": "Success!!",
