@@ -9,16 +9,33 @@ function OTPverification(phone_number) {
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  client.messages
-    .create({
+  try{
+    const message = client.messages.create({
       body: `Your OTP is: ${otp}`,
       from: twilioPhone,
       to: phone_number,
     })
-    .then((message) => console.log(`OTP sent. SID: ${message.sid}`))
-    .catch((error) => console.error(`Error sending OTP: ${error.message}`));
 
-  return otp;
+    console.log("Message:::")
+    if(message.status=="200"||message.status=="201"){
+      return {
+        "status": 1,
+        "message": "Success!!",
+        "otp": otp
+      }
+    }else{
+      return {
+        "status": 0,
+        "message": "Not able to send otp!!"
+      }
+    }
+
+  }catch(err){
+    return {
+      "status": 0,
+      "message": "Not able to send otp!!"
+    }
+  }
 }
 
 module.exports = {OTPverification}
