@@ -3,8 +3,16 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
 function OTPverification(phone_number) {
+
+  if (!(phone_number && phone_number.length === 13 && phone_number.startsWith('+91'))) {
+    return {
+      "status": 0,
+      "message": "Invalid phone number format. It must be of length 10 and start with '+91'."
+    };
+  }
+
   const accountSid = 'AC1e7684bbdf95602397ae0c8f3daf7d67';
-  const authToken = '124ca3160cd9544ba2220a9c334ecb40';
+  const authToken = 'ee2ce97ff559284be1c64a0a8dcdf82b';
   const twilioPhone = '+12017718274';
     
   const client = new twilio(accountSid, authToken);
@@ -19,17 +27,10 @@ function OTPverification(phone_number) {
     })
 
     console.log("Message:::")
-    if(message.status=="200"||message.status=="201"){
-      return {
-        "status": 1,
-        "message": "Success!!",
-        "otp": otp
-      }
-    }else{
-      return {
-        "status": 0,
-        "message": "Not able to send otp!!"
-      }
+    return {
+      "status": 1,
+      "message": "Success!!",
+      "otp": otp
     }
 
   }catch(err){
@@ -40,18 +41,4 @@ function OTPverification(phone_number) {
   }
 }
 
-function jwtToken(email){
-  const payload = {
-    email: email,
-    //1 day expiration
-    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
-  };
-  
-  const token = jwt.sign(payload, process.env.JWT_SECRET);
-
-  console.log("token:::", token)
-
-  return token;
-}
-
-module.exports = {OTPverification, jwtToken}
+module.exports = {OTPverification}

@@ -1,13 +1,13 @@
 const User = new require('../models/user.js')
 const OTP = new require('../models/otp.js')
 
-const {OTPverification, jwtToken} = require('../util/auth.js')
+const {OTPverification} = require('../util/auth.js')
 
 const authSignup = async (req, res)=>{
     console.log("Signup Page:::")
     const {phone_number, age, email} = req.body;
     if(req.body==null || phone_number==null || age==null || email==null){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -22,7 +22,7 @@ const authSignup = async (req, res)=>{
 
             const otpToken = OTPverification(phone_number);
             if(otpToken.status==1){
-                newUser.otpToken = otpToken;
+                newUser.otpToken = otpToken.otp;
 
                 await newUser.save()
     
@@ -33,7 +33,7 @@ const authSignup = async (req, res)=>{
                     "user": newUser
                 })
             }else{
-                res.status(401).send({
+                return res.status(401).send({
                     "code": 0,
                     "status": "Error",
                     "message": otpToken.message
@@ -60,7 +60,7 @@ const authLogin = async (req, res)=>{
 
     const {phone_number, email} = req.body;
     if(req.body==null || (phone_number==null && email==null)){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -74,8 +74,8 @@ const authLogin = async (req, res)=>{
             const otpToken = OTPverification(check.user.phone_number);
             if(otpToken.status==1){
                 const newOTP = {
-                    "phone_numer": check.user.phone_number,
-                    "otp": otpToken
+                    "phone_number": check.user.phone_number,
+                    "otpToken": otpToken.otp
                 }
     
                 const newOTPUser = OTP(newOTP);
@@ -89,7 +89,7 @@ const authLogin = async (req, res)=>{
                     "user": check.user
                 })
             }else{
-                res.status(401).send({
+                return res.status(401).send({
                     "code": 0,
                     "status": "Error",
                     "message": otpToken.message
@@ -97,7 +97,7 @@ const authLogin = async (req, res)=>{
             }
         }
 
-        res.status(401).send({
+        return res.status(401).send({
             "code": 0,
             "status": "Error",
             "message": check.message
@@ -117,7 +117,7 @@ const authverify = async (req, res)=>{
     const {otp} = req.body;
     
     if(req.body==null || otp==null || phone_number==null){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -125,35 +125,32 @@ const authverify = async (req, res)=>{
     }
 
     try{
-        const user = await User.findOne({phone_number:phone_number});
-        const otp = await OTP.find({phone_number: phone_number})
-        if(user!=null || otp.length!=0){
-            if(otp.length!=0){
-                const latestOTP = otp[otp.length-1]
+        let user = await User.findOne({phone_number:phone_number});
+        const otpModel = await OTP.find({phone_number: phone_number})
+        if(user!=null || otpModel.length!=0){
+            if(otpModel.length!=0){
+                const latestOTP = otpModel[otpModel.length-1]
                 if(latestOTP.otpToken==otp){
-                    const token = jwtToken(check.user.email);
-                    
                     if(user==null){
                         const newUser = {
                             "email": latestOTP.email,
                             "age": latestOTP.age,
                             "phone_number": latestOTP.phone_number
                         }
-                        newUser.tokens.push({token})
                         user = new User(newUser);
-
-                        await user.save();
                     }
 
                     await OTP.deleteMany({
                         phone_number:phone_number
                     })
-                    user.tokens.push({token})
-                    await user.save()
+
+                    const token = await user.generateAuthToken();
+
                     return res.status(200).send({
                         "code": 1,
                         "status": "Success!!",
                         "message": "OTP verified successfully!!",
+                        "token": token,
                         "user": user
                     })
                 }else{
@@ -161,7 +158,6 @@ const authverify = async (req, res)=>{
                         "code": 0,
                         "status": "Error!!",
                         "message": "Invalid OTP!!",
-                        "user": user
                     })
                 }
             }else{

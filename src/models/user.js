@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 // const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
@@ -46,18 +47,31 @@ const userSchema = new mongoose.Schema({
     ],
 });
 
-// userSchema.pre('save', async function (next) {
-//     const user = this
+userSchema.methods.generateAuthToken = async function () {
+    const user = this;
+    
+    // Set the expiration time to 15 days (in seconds)
+    const expiresIn = 15 * 24 * 60 * 60;
 
-//     if (user.isModified('password')) {
-//         user.password = await bcrypt.hash(user.password, 8)
-//     }
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn });
+    
+    user.tokens = user.tokens.concat({ token });
+    await user.save();
+    
+    return token;
+};
 
-//     next()
-// })
+userSchema.methods.toJSON = function(){
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.tokens
+    
+    return userObject
+}
 
 userSchema.statics.findUser = async (email,phone_number)=>{
-    const user = await User.findOne({phone_number: phone_number})
+    let user = await User.findOne({phone_number: phone_number})
     if(user==null){
         user = await User.findOne({email: email})
     }
@@ -68,15 +82,6 @@ userSchema.statics.findUser = async (email,phone_number)=>{
             "message": "Invalid details!!"
         }
     }
-
-    // const isMatch = await bcrypt.compare(password, user.password);
-
-    // if(!isMatch){
-    //     return {
-    //         "status": 0,
-    //         "message": "Invalid details!!"
-    //     }
-    // }
     
     return {
         "status": 1,
