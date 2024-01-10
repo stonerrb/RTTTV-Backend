@@ -7,7 +7,7 @@ const authSignup = async (req, res)=>{
     console.log("Signup Page:::")
     const {phone_number, age, email} = req.body;
     if(req.body==null || phone_number==null || age==null || email==null){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -60,7 +60,7 @@ const authLogin = async (req, res)=>{
 
     const {phone_number, email} = req.body;
     if(req.body==null || (phone_number==null && email==null)){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -74,12 +74,12 @@ const authLogin = async (req, res)=>{
             const otpToken = OTPverification(check.user.phone_number);
             if(otpToken.status==1){
                 const newOTP = {
-                    "phone_numer": check.user.phone_number,
-                    "otp": otpToken
+                    "phone_number": check.user.phone_number,
+                    "otpToken": otpToken.otp
                 }
     
                 const newOTPUser = OTP(newOTP);
-    
+                
                 await newOTPUser.save();
     
                 return res.status(200).send({
@@ -89,7 +89,7 @@ const authLogin = async (req, res)=>{
                     "user": check.user
                 })
             }else{
-                res.status(401).send({
+                return res.status(401).send({
                     "code": 0,
                     "status": "Error",
                     "message": otpToken.message
@@ -97,7 +97,7 @@ const authLogin = async (req, res)=>{
             }
         }
 
-        res.status(401).send({
+        return res.status(401).send({
             "code": 0,
             "status": "Error",
             "message": check.message
@@ -117,7 +117,7 @@ const authverify = async (req, res)=>{
     const {otp} = req.body;
     
     if(req.body==null || otp==null || phone_number==null){
-        res.status(400).send({
+        return res.status(400).send({
             "code": 0,
             "status": "Error",
             "message": "Enter valid details!!"
@@ -128,12 +128,10 @@ const authverify = async (req, res)=>{
         let user = await User.findOne({phone_number:phone_number});
         const otpModel = await OTP.find({phone_number: phone_number})
         if(user!=null || otpModel.length!=0){
-            if(otp.length!=0){
-                const latestOTP = otpModel[otpModel.length-1]
-                console.log(latestOTP.otpToken)
-                console.log(otp)
-                if(latestOTP.otpToken==otp){
 
+            if(otpModel.length!=0){
+                const latestOTP = otpModel[otpModel.length-1]
+                if(latestOTP.otpToken==otp){
                     if(user==null){
                         const newUser = {
                             "email": latestOTP.email,
@@ -141,18 +139,20 @@ const authverify = async (req, res)=>{
                             "phone_number": latestOTP.phone_number
                         }
                         user = new User(newUser);
-                        
                     }
 
                     await OTP.deleteMany({
                         phone_number:phone_number
                     })
-                    //Session Token generation save user model over here
-                    await user.save();
+
+                    const token = await user.generateAuthToken();
+
+
                     return res.status(200).send({
                         "code": 1,
                         "status": "Success!!",
                         "message": "OTP verified successfully!!",
+                        "token": token,
                         "user": user
                     })
                 }else{
@@ -160,7 +160,6 @@ const authverify = async (req, res)=>{
                         "code": 0,
                         "status": "Error!!",
                         "message": "Invalid OTP!!",
-                        "user": user
                     })
                 }
             }else{

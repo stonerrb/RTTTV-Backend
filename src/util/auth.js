@@ -1,6 +1,16 @@
 const twilio = require('twilio');
+const jwt = require('jsonwebtoken');
+require('dotenv').config()
 
-async function OTPverification(phone_number) {
+
+function OTPverification(phone_number) {
+
+  if (!(phone_number && phone_number.length === 13 && phone_number.startsWith('+91'))) {
+    return {
+      "status": 0,
+      "message": "Invalid phone number format. It must be of length 10 and start with '+91'."
+    };
+  }
   const accountSid = 'AC1e7684bbdf95602397ae0c8f3daf7d67';
   const authToken = 'ee2ce97ff559284be1c64a0a8dcdf82b';
   const twilioPhone = '+12017718274';
