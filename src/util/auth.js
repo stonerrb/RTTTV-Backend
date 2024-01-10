@@ -1,4 +1,5 @@
 const twilio = require('twilio');
+const jwt = require('jsonwebtoken');
 
 function OTPverification(phone_number) {
   const accountSid = 'AC1e7684bbdf95602397ae0c8f3daf7d67';
@@ -38,4 +39,18 @@ function OTPverification(phone_number) {
   }
 }
 
-module.exports = {OTPverification}
+function jwtToken(email){
+  const payload = {
+    email: email,
+    //1 day expiration
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
+  };
+  
+  const token = jwt.sign(payload, process.env.JWT_SECRET);
+
+  console.log("token:::", token)
+
+  return token;
+}
+
+module.exports = {OTPverification, jwtToken}
