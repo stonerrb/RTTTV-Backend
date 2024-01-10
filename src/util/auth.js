@@ -2,6 +2,7 @@ const twilio = require('twilio');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
+
 function OTPverification(phone_number) {
 
   if (!(phone_number && phone_number.length === 13 && phone_number.startsWith('+91'))) {
@@ -10,7 +11,6 @@ function OTPverification(phone_number) {
       "message": "Invalid phone number format. It must be of length 10 and start with '+91'."
     };
   }
-
   const accountSid = 'AC1e7684bbdf95602397ae0c8f3daf7d67';
   const authToken = 'ee2ce97ff559284be1c64a0a8dcdf82b';
   const twilioPhone = '+12017718274';
@@ -20,7 +20,7 @@ function OTPverification(phone_number) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   try{
-    const message = client.messages.create({
+    const message = await client.messages.create({
       body: `Your OTP is: ${otp}`,
       from: twilioPhone,
       to: phone_number,
@@ -34,6 +34,8 @@ function OTPverification(phone_number) {
     }
 
   }catch(err){
+    console.log("Catch:::")
+    console.log(err)
     return {
       "status": 0,
       "message": "Not able to send otp!!"

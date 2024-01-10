@@ -19,8 +19,8 @@ const authSignup = async (req, res)=>{
 
         if(user==null){
             const newUser = OTP(req.body)
-
-            const otpToken = OTPverification(phone_number);
+            console.log(phone_number.typeOf)
+            const otpToken = await OTPverification(phone_number);
             if(otpToken.status==1){
                 newUser.otpToken = otpToken.otp;
 
@@ -128,6 +128,7 @@ const authverify = async (req, res)=>{
         let user = await User.findOne({phone_number:phone_number});
         const otpModel = await OTP.find({phone_number: phone_number})
         if(user!=null || otpModel.length!=0){
+
             if(otpModel.length!=0){
                 const latestOTP = otpModel[otpModel.length-1]
                 if(latestOTP.otpToken==otp){
@@ -146,6 +147,7 @@ const authverify = async (req, res)=>{
 
                     const token = await user.generateAuthToken();
 
+
                     return res.status(200).send({
                         "code": 1,
                         "status": "Success!!",
@@ -154,7 +156,7 @@ const authverify = async (req, res)=>{
                         "user": user
                     })
                 }else{
-                    return res.status(200).send({
+                    return res.status(400).send({
                         "code": 0,
                         "status": "Error!!",
                         "message": "Invalid OTP!!",
