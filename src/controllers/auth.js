@@ -1,7 +1,7 @@
 const User = new require('../models/user.js')
 const OTP = new require('../models/otp.js')
 
-const {OTPverification} = require('../util/auth.js')
+const {OTPverification, jwtToken} = require('../util/auth.js')
 
 const authSignup = async (req, res)=>{
     console.log("Signup Page:::")
@@ -79,7 +79,7 @@ const authLogin = async (req, res)=>{
                 }
     
                 const newOTPUser = OTP(newOTP);
-    
+                
                 await newOTPUser.save();
     
                 return res.status(200).send({
@@ -131,21 +131,25 @@ const authverify = async (req, res)=>{
             if(otp.length!=0){
                 const latestOTP = otp[otp.length-1]
                 if(latestOTP.otpToken==otp){
-
+                    const token = jwtToken(check.user.email);
+                    
                     if(user==null){
                         const newUser = {
                             "email": latestOTP.email,
                             "age": latestOTP.age,
                             "phone_number": latestOTP.phone_number
                         }
+                        newUser.tokens.push({token})
                         user = new User(newUser);
+
                         await user.save();
                     }
 
                     await OTP.deleteMany({
                         phone_number:phone_number
                     })
-await user.save()
+                    user.tokens.push({token})
+                    await user.save()
                     return res.status(200).send({
                         "code": 1,
                         "status": "Success!!",

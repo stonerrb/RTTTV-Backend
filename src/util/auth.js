@@ -1,5 +1,6 @@
 const twilio = require('twilio');
 const jwt = require('jsonwebtoken');
+require('dotenv').config()
 
 function OTPverification(phone_number) {
   const accountSid = 'AC1e7684bbdf95602397ae0c8f3daf7d67';
