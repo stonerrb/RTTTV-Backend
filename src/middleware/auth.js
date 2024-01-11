@@ -1,15 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user')
 
-const jwtMiddleware = async(req, res, next) => {
+const middleware = async(req, res, next) => {
     // Get the token from the request headers
-    const token = req.header('Authorization');
+    const token = req.header('Authorization').replace('Bearer ', '');
   
     // Check if the token is missing
     if (!token) {
       return res.status(401).json({ 
         "status": 0,
-        "message": 'Unauthorized - Missing token' 
+        "message": 'Invalid token!' 
       });
     }
   
@@ -19,7 +19,11 @@ const jwtMiddleware = async(req, res, next) => {
       const user = await User.findOne({_id: decoded._id, 'tokens.token': token})
 
       if(!user){
-        throw new Error('User may not logged in or User may not exists!!')
+        return res.status(400).send({
+          "code": 0,
+          "status": "Error",
+          "message": "Session expired!"
+      });
       }
   
       // Attach the decoded payload to the request for further use
@@ -31,10 +35,11 @@ const jwtMiddleware = async(req, res, next) => {
     } catch (err) {
       // Token verification failed
       return res.status(401).json({ 
-          "status": 0,
+          "code": 0,
+          "status": "Failure",
           "message": err
         });
     }
   };
   
-  module.exports = {jwtMiddleware};
+  module.exports = {middleware};

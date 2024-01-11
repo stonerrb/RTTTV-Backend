@@ -10,7 +10,7 @@ const authSignup = async (req, res)=>{
         return res.status(400).send({
             "code": 0,
             "status": "Error",
-            "message": "Enter valid details!!"
+            "message": "Enter valid details!"
         })
     }
     
@@ -19,7 +19,7 @@ const authSignup = async (req, res)=>{
 
         if(user==null){
             const newUser = OTP(req.body)
-            console.log(phone_number.typeOf)
+            // console.log(phone_number.typeOf)
             const otpToken = await OTPverification(phone_number);
             if(otpToken.status==1){
                 newUser.otpToken = otpToken.otp;
@@ -44,7 +44,7 @@ const authSignup = async (req, res)=>{
         return res.status(400).send({
             "code": 0,
             "status": "Error",
-            "message": "Phone Number already exists!!"
+            "message": "Phone Number already exists!"
         })
     }catch(err){
         return res.status(500).send({
@@ -63,7 +63,7 @@ const authLogin = async (req, res)=>{
         return res.status(400).send({
             "code": 0,
             "status": "Error",
-            "message": "Enter valid details!!"
+            "message": "Enter valid details"
         })
     }
 
@@ -71,7 +71,7 @@ const authLogin = async (req, res)=>{
         const check = await User.findUser(email,phone_number);
         if(check.status==1){
 
-            const otpToken = OTPverification(check.user.phone_number);
+            const otpToken = await OTPverification(check.user.phone_number);
             if(otpToken.status==1){
                 const newOTP = {
                     "phone_number": check.user.phone_number,
@@ -84,11 +84,12 @@ const authLogin = async (req, res)=>{
     
                 return res.status(200).send({
                     "code": 1,
-                    "status": "Success!!",
+                    "status": "Success",
                     "message": "OTP sent successfully to Email and Phone No.",
                     "user": check.user
                 })
             }else{
+                // console.log(otpToken)
                 return res.status(401).send({
                     "code": 0,
                     "status": "Error",
@@ -120,7 +121,7 @@ const authverify = async (req, res)=>{
         return res.status(400).send({
             "code": 0,
             "status": "Error",
-            "message": "Enter valid details!!"
+            "message": "Enter valid details!"
         })
     }
 
@@ -131,6 +132,8 @@ const authverify = async (req, res)=>{
 
             if(otpModel.length!=0){
                 const latestOTP = otpModel[otpModel.length-1]
+                // console.log(latestOTP.otpToken)
+                // console.log(otp)    
                 if(latestOTP.otpToken==otp){
                     if(user==null){
                         const newUser = {
@@ -150,16 +153,16 @@ const authverify = async (req, res)=>{
 
                     return res.status(200).send({
                         "code": 1,
-                        "status": "Success!!",
-                        "message": "OTP verified successfully!!",
+                        "status": "Success",
+                        "message": "OTP verified successfully",
                         "token": token,
                         "user": user
                     })
                 }else{
                     return res.status(400).send({
                         "code": 0,
-                        "status": "Error!!",
-                        "message": "Invalid OTP!!",
+                        "status": "Error",
+                        "message": "Invalid OTP",
                     })
                 }
             }else{
@@ -173,7 +176,7 @@ const authverify = async (req, res)=>{
             return res.status(400).send({
                 "code": 0,
                 "status": "Error",
-                "message": "No such user found!!"
+                "message": "No such user found!"
             })
         }
     }catch(err){
@@ -184,5 +187,26 @@ const authverify = async (req, res)=>{
         })
     }
 }
+
+const authLogout = async (req, res) => {
+    console.log("Logout Page:::");
+    try {
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token != req.token;
+        });
+        await req.user.save();
+        res.send({
+            "code": 1,
+            "status": "Success",
+            "message": "Successfully logout!"
+        });
+    } catch (e) {
+        res.status(500).send({
+            "code": 0,
+            "status": "Error",
+            "message": "Server Error! Try again!"
+        });
+    }
+};
     
-module.exports = {authSignup, authLogin , authverify}
+module.exports = {authSignup, authLogin , authverify, authLogout}
