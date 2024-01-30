@@ -17,25 +17,15 @@ const s3 = new S3Client({
 
 const addMovie = async (req, res) => {
   if (req.body === undefined) return res.status(400).send("No data provided");
-  const {
-    movie_name,
-    release_year,
-    cast,
-    duration,
-    languages,
-    genres,
-    description,
-  } = req.body;
-  if (
-    !movie_name ||
-    !release_year ||
-    !cast ||
-    !duration ||
-    !languages ||
-    !genres ||
-    !description
-  )
-    return res.status(400).send("Please provide all the details");
+  const { movie_name, release_year, cast, duration, languages, genres, description } = req.body;
+  if ( !movie_name || !release_year || !cast || !duration || !languages || !genres || !description ){
+    return res.status(400).send({
+      "code": 0,
+      "status": "Failure",
+      "message": "Please provide all the details"
+    })
+  }
+    
   try {
     const new_movie = new Movie({
       movie_name,
@@ -52,17 +42,30 @@ const addMovie = async (req, res) => {
       .send({ message: "Movie added successfully", movie: new_movie });
   } catch (error) {
     console.error("Error adding movie:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send.send({
+      "code": 0,
+      "status": "Failure",
+      "message": "Internal Server Error"
+    })
   }
 };
 
 const uploadPoster = async (req, res) => {
-  try {
-    // Extract poster file and JSON data from the request
-    const buffer = await sharp(req.file.buffer).png().toBuffer();
-    const bucketName = process.env.AWS_POSTER_BUCKET_NAME;
-    const jsonData = JSON.parse(req.body.data);
 
+  // Extract poster file and JSON data from the request
+  const buffer = await sharp(req.file.buffer).png().toBuffer();
+  const bucketName = process.env.AWS_POSTER_BUCKET_NAME;
+  const jsonData = JSON.parse(req.body.data);
+
+  if(buffer==null || buffer==undefined || buffer=="" || bucketName==null || bucketName==undefined || bucketName=="" || jsonData==null || jsonData==undefined || jsonData==""){
+    return res.status(400).send({
+      "code": 0,
+      "status": "Failure",
+      "message": "No data provided"
+    })
+  }
+
+  try {
     // Find the movie based on the provided information
     const movie = await Movie.findOne({
       movie_name: jsonData.movie_name,
@@ -85,10 +88,19 @@ const uploadPoster = async (req, res) => {
       })
     );
 
-    res.status(200).send("Poster uploaded successfully");
+    res.status(200).send({
+      "code": 1,
+      "status": "Success",
+      "message": "Poster uploaded successfully"
+    })
+
   } catch (error) {
     console.error("Error uploading poster:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send.send({
+      "code": 0,
+      "status": "Failure",
+      "message": "Internal Server Error"
+    })
   }
 };
 
@@ -96,6 +108,14 @@ const uploadVideo = async (req, res) => {
   const buffer = req.file.buffer; // Assuming the video buffer is not processed with sharp
   const bucketName = process.env.AWS_VIDEO_BUCKET_NAME;
   const jsonData = JSON.parse(req.body.data);
+
+  if(buffer==null || buffer==undefined || buffer=="" || bucketName==null || bucketName==undefined || bucketName=="" || jsonData==null || jsonData==undefined || jsonData==""){
+    return res.status(400).send({
+      "code": 0,
+      "status": "Failure",
+      "message": "No data provided"
+    })
+  }
   
   try {
     // Find the movie based on the provided information
@@ -119,10 +139,19 @@ const uploadVideo = async (req, res) => {
       })
     );
 
-    res.status(200).send("Video uploaded successfully");
+    res.status(200).send({
+      "code": 1,
+      "status": "Success",
+      "message": "Video uploaded successfully"
+    })
+
   } catch (error) {
     console.error("Error uploading video:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send.send({
+      "code": 0,
+      "status": "Failure",
+      "message": "Internal Server Error"
+    })
   }
 };
 
