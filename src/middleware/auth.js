@@ -3,6 +3,13 @@ const User = require('../models/user')
 
 const middleware = async(req, res, next) => {
     // Get the token from the request headers
+    if( req.header('Authorization')==null || req.header('Authorization')==undefined || req.header('Authorization')=="" ){
+      return res.status(401).json({ 
+        "status": 0,
+        "message": 'Invalid token!' 
+      });
+    }
+
     const token = req.header('Authorization').replace('Bearer ', '');
   
     // Check if the token is missing
