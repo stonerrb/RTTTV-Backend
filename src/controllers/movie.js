@@ -16,12 +16,18 @@ const s3 = new S3Client({
 });
 
 const addMovie = async (req, res) => {
-  if (req.body === undefined) return res.status(400).send("No data provided");
-  const { movie_name, release_year, cast, duration, languages, genres, description } = req.body;
+  if (req.body === undefined){
+    return res.status(400).send({
+      "code": 0,
+      "status": "Error",
+      "message": "Please provide all the details"
+    })
+  }
+  const { movie_name, release_year, cast, duration, languages, genres, description, star } = req.body;
   if ( !movie_name || !release_year || !cast || !duration || !languages || !genres || !description ){
     return res.status(400).send({
       "code": 0,
-      "status": "Failure",
+      "status": "Error",
       "message": "Please provide all the details"
     })
   }
@@ -35,6 +41,7 @@ const addMovie = async (req, res) => {
       languages,
       genres,
       description,
+      star
     });
     await new_movie.save();
     res
@@ -60,7 +67,7 @@ const uploadPoster = async (req, res) => {
   if(buffer==null || buffer==undefined || buffer=="" || bucketName==null || bucketName==undefined || bucketName=="" || jsonData==null || jsonData==undefined || jsonData==""){
     return res.status(400).send({
       "code": 0,
-      "status": "Failure",
+      "status": "Error",
       "message": "No data provided"
     })
   }
@@ -84,7 +91,7 @@ const uploadPoster = async (req, res) => {
         Key: filename,
         Body: buffer,
         ACL: "public-read",
-        ContentType: req.file.buffer.mimetype,
+        ContentType: "image/png",
       })
     );
 
@@ -112,7 +119,7 @@ const uploadVideo = async (req, res) => {
   if(buffer==null || buffer==undefined || buffer=="" || bucketName==null || bucketName==undefined || bucketName=="" || jsonData==null || jsonData==undefined || jsonData==""){
     return res.status(400).send({
       "code": 0,
-      "status": "Failure",
+      "status": "Error",
       "message": "No data provided"
     })
   }
