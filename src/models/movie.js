@@ -66,6 +66,11 @@ const movieSchema = new mongoose.Schema({
     poster_title: {
         type: String,
     },
+    star: {
+        type: Number,
+        min: 0.0,
+        max: 10.0
+    }
 });
 
 module.exports = mongoose.model('Movie', movieSchema);
