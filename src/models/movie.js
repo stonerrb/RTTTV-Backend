@@ -16,61 +16,22 @@ const movieSchema = new mongoose.Schema({
             }
         }
     ],
-    ratings: [
-        {
-            rating: {
-                type: Number,
-            },
-            user: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            }
-        }
-    ],
-    reviews: [
-        {
-            review: {
-                type: String,
-            },
-            user: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            }
-        }
-    ],
-    duration: {
-        type: Number,
-        required: true,
-    },
-    languages: [
-        {
-            language: {
-                type: String,
-            }
-        }
-    ],
-    genres: [
-        {
-            genre: {
-                type: String,
-            }
-        }
-    ],
-    description: {
-        type: String,
-        required: true,
-    },
     video_title: {
         type: String,
+        required: true,
+    },
+    video_format: {
+        type: String,
+        required: true,
     },
     poster_title: {
         type: String,
+        required: true,
     },
-    star: {
-        type: Number,
-        min: 0.0,
-        max: 10.0
-    }
+    poster_format: {
+        type: String,
+        required: true,
+    },
 });
 
 module.exports = mongoose.model('Movie', movieSchema);
