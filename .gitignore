@@ -131,3 +131,5 @@ dist
 
 commands.txt
 dockerfile
+
+./package-lock.json
