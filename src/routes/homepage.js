@@ -6,6 +6,6 @@ const {homepage , getMovie} = require('../controllers/homepage.js')
 
 router.post('/home', homepage );
 
-router.post('/getmovie/:id', getMovie);
+router.get('/getmovie/:id', getMovie);
 
 module.exports = router
