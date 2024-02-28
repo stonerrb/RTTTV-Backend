@@ -1,6 +1,6 @@
 const twilio = require('twilio');
 const jwt = require('jsonwebtoken');
-require('dotenv').config()
+// require('dotenv').config()
 
 
 async function OTPverification(phone_number) {
