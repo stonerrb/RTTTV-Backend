@@ -1,5 +1,4 @@
 require('./db/mongoose')
-// require('dotenv').config()
 const bodyParser = require('body-parser');
 
 const express = require('express');
@@ -8,6 +7,7 @@ const cors = require('cors');
 const authroute = require('./routes/auth.js')
 const adminroute = require('./routes/admin.js')
 const homeroute = require('./routes/home.js')
+
 
 const app = express();
 app.use(bodyParser.json());
